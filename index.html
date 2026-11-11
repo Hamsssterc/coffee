@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Кофейня Зерно</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
+        body { background-color: #18222d; color: #ffffff; margin: 0; padding: 16px; }
+        
+        /* Верхние вкладки напитков */
+        .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; }
+        .chip { background: #213040; color: #8a9aa9; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .chip.active { background: #e08245; color: #ffffff; }
+
+        /* Карточка со стаканчиком и объемом */
+        .hero-card { background: #213040; border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+        .cup-wrap { width: 70px; height: 110px; display: flex; align-items: flex-end; justify-content: center; flex-shrink: 0; }
+        .cup-svg { transition: transform 0.25s ease; transform-origin: bottom center; }
+        .hero-info { flex: 1; }
+        .hero-title { font-size: 20px; font-weight: 700; margin: 0 0 4px 0; }
+        .hero-desc { font-size: 12px; color: #8a9aa9; margin: 0 0 12px 0; }
+
+        .volumes { display: flex; gap: 8px; }
+        .vol-btn { flex: 1; background: #18222d; color: #8a9aa9; border-radius: 12px; padding: 8px 4px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .vol-btn strong { display: block; font-size: 14px; color: #fff; }
+        .vol-btn span { font-size: 11px; }
+        .vol-btn.active { background: #e08245; color: #fff; }
+
+        /* Секции Молоко и Сироп */
+        .section-label { font-size: 11px; font-weight: 700; color: #e08245; text-transform: uppercase; letter-spacing: 0.8px; margin: 14px 0 8px 0; }
+        .options-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        
+        /* Нижняя панель со счетчиком и кнопкой */
+        .bottom-bar { display: flex; gap: 12px; margin-top: 24px; align-items: center; }
+        .counter { display: flex; align-items: center; background: #213040; border-radius: 14px; padding: 6px 12px; gap: 14px; font-size: 18px; font-weight: 700; }
+        .counter button { background: none; border: none; color: #8a9aa9; font-size: 22px; cursor: pointer; padding: 4px 6px; }
+        .submit-btn { flex: 1; background: #e08245; color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .submit-btn:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <div class="tabs" id="drinks">
+        <div class="chip" onclick="selectDrink('Капучино', 'Эспрессо со взбитым молоком', this)">Капучино</div>
+        <div class="chip" onclick="selectDrink('Латте', 'Много молока и нежная пенка', this)">Латте</div>
+        <div class="chip" onclick="selectDrink('Раф', 'Сливки, эспрессо и ванильный сахар', this)">Раф</div>
+        <div class="chip active" onclick="selectDrink('Американо', 'Двойной эспрессо и горячая вода', this)">Американо</div>
+    </div>
+
+    <div class="hero-card">
+        <div class="cup-wrap">
+            <!-- Векторный стаканчик (меняет размер при выборе S/M/L) -->
+            <svg class="cup-svg" id="cupSvg" width="56" height="90" viewBox="0 0 60 95">
+                <path d="M10 15 L50 15 L45 90 L15 90 Z" fill="#e6e6e6"/>
+                <path d="M12 40 L48 40 L46 68 L14 68 Z" fill="#e08245"/>
+                <circle cx="30" cy="54" r="6" fill="#ffffff"/>
+                <rect x="6" y="8" width="48" height="8" rx="3" fill="#2b2b2b"/>
+            </svg>
+        </div>
+        <div class="hero-info">
+            <h2 class="hero-title" id="drinkTitle">Американо</h2>
+            <p class="hero-desc" id="drinkDesc">Двойной эспрессо и горячая вода</p>
+            <div class="volumes">
+                <div class="vol-btn" onclick="selectVol('S', '250 мл', 0.8, this)"><strong>S</strong><span>250 мл</span></div>
+                <div class="vol-btn" onclick="selectVol('M', '350 мл', 0.92, this)"><strong>M</strong><span>350 мл</span></div>
+                <div class="vol-btn active" onclick="selectVol('L', '450 мл', 1.05, this)"><strong>L</strong><span>450 мл</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-label">Молоко</div>
+    <div class="options-grid" id="milk">
+        <div class="chip" onclick="selectOption('milk', 'Обычное', this)">🥛 Обычное</div>
+        <div class="chip" onclick="selectOption('milk', 'Овсяное +40 ₽', this)">🌾 Овсяное +40 ₽</div>
+        <div class="chip active" onclick="selectOption('milk', 'Кокосовое +50 ₽', this)">🥥 Кокосовое +50 ₽</div>
+    </div>
+
+    <div class="section-label">Сироп</div>
+    <div class="options-grid" id="syrup">
+        <div class="chip" onclick="selectOption('syrup', 'Без сиропа', this)">Без сиропа</div>
+        <div class="chip active" onclick="selectOption('syrup', 'Карамель +30 ₽', this)">🍯 Карамель +30 ₽</div>
+        <div class="chip" onclick="selectOption('syrup', 'Ваниль +30 ₽', this)">🍦 Ваниль +30 ₽</div>
+        <div class="chip" onclick="selectOption('syrup', 'Орех +30 ₽', this)">🌰 Орех +30 ₽</div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="counter">
+            <button onclick="changeQty(-1)">−</button>
+            <span id="qty">1</span>
+            <button onclick="changeQty(1)">+</button>
+        </div>
+        <button class="submit-btn" onclick="sendOrder()">Отправляем...</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let state = {
+            drink: 'Американо',
+            vol: '450 мл',
+            milk: 'Кокосовое +50 ₽',
+            syrup: 'Карамель +30 ₽',
+            qty: 1
+        };
+
+        function selectDrink(name, desc, el) {
+            state.drink = name;
+            document.getElementById('drinkTitle').innerText = name;
+            document.getElementById('drinkDesc').innerText = desc;
+            document.querySelectorAll('#drinks .chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function selectVol(size, ml, scale, el) {
+            state.vol = ml;
+            document.getElementById('cupSvg').style.transform = `scale(${scale})`;
+            document.querySelectorAll('.vol-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function selectOption(group, val, el) {
+            state[group] = val;
+            document.querySelectorAll(`#${group} .chip`).forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function changeQty(delta) {
+            state.qty = Math.max(1, state.qty + delta);
+            document.getElementById('qty').innerText = state.qty;
+        }
+
+        function sendOrder() {
+            tg.sendData(JSON.stringify(state));
+        }
+    </script>
+</body>
+</html>
