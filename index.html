@@ -94,17 +94,34 @@
         <button class="submit-btn" onclick="sendOrder()">Отправляем...</button>
     </div>
 
-   <script>
-        // Инициализация объекта для HTMLBubbles (Bot API 10.4)
-        const tg = window.TelegramWidget || window.Telegram?.Widget;
-        
+   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Используем стандартный объект Telegram
+        const tg = window.Telegram.WebApp;
+
+        // Базовые цены на напитки и добавки
+        const prices = {
+            drink: { 'Капучино': 170, 'Латте': 180, 'Раф': 210, 'Американо': 150 },
+            size: { 'S (250 мл)': 0, 'M (350 мл)': 30, 'L (450 мл)': 60 },
+            milk: { 'Обычное': 0, 'Овсяное +40 ₽': 40, 'Кокосовое +50 ₽': 50 },
+            syrup: { 'Без сиропа': 0, 'Карамель +30 ₽': 30, 'Ваниль +30 ₽': 30, 'Орех +30 ₽': 30 }
+        };
+
         const order = {
             drink: 'Американо',
             size: 'L (450 мл)',
             milk: 'Кокосовое +50 ₽',
             syrup: 'Карамель +30 ₽',
-            qty: 1
+            qty: 1,
+            total: 0
         };
+
+        // Функция пересчета итоговой суммы
+        function updatePrice() {
+            let currentPrice = prices.drink[order.drink] + prices.size[order.size] + prices.milk[order.milk] + prices.syrup[order.syrup];
+            order.total = currentPrice * order.qty;
+            document.querySelector('.submit-btn').innerText = `Отправляем... ${order.total} ₽`;
+        }
 
         function selectItem(key, name, desc, el) {
             order[key] = name;
@@ -112,27 +129,29 @@
             document.getElementById('drink-desc').innerText = desc;
             el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
+            updatePrice();
         }
 
         function selectOption(key, val, el) {
             order[key] = val;
             el.parentElement.querySelectorAll('.size-btn, .chip').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
+            updatePrice();
         }
 
         function changeQty(delta) {
             order.qty = Math.max(1, order.qty + delta);
             document.getElementById('qty').innerText = order.qty;
+            updatePrice();
         }
 
         function sendOrder() {
-            if (tg && tg.sendData) {
-                // Отправляем данные боту (это создаст событие widget_query)
-                tg.sendData(JSON.stringify(order));
-            } else {
-                alert("Откройте меню через Telegram бота.");
-            }
+            // В новых виджетах 10.4 данные часто отправляются через тот же sendData
+            tg.sendData(JSON.stringify(order));
         }
+
+        // Считаем цену сразу при загрузке
+        updatePrice();
     </script>
 </body>
 </html>
