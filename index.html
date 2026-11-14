@@ -1,30 +1,162 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #fff; }
-        .btn { padding: 12px 24px; font-size: 16px; background: #3390ec; color: #fff; border: none; border-radius: 10px; cursor: pointer; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1c1c1d; /* Темный фон Telegram */
+            color: #ffffff;
+            margin: 0;
+            padding: 16px;
+            user-select: none;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #2a2a2b;
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+        }
+        .header-icon {
+            font-size: 40px;
+        }
+        .header-info h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .header-info p {
+            margin: 4px 0 0;
+            color: #4b92c4; /* Голубоватый текст описания */
+            font-size: 13px;
+        }
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #8e8e93;
+            margin: 16px 0 8px;
+            letter-spacing: 1px;
+        }
+        .options-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .option-btn {
+            background: #2a2a2b;
+            color: #4b92c4;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .option-btn.active {
+            background: #ff9052; /* Оранжевый цвет выбранной кнопки */
+            color: #000;
+            font-weight: bold;
+        }
+        .footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .counter {
+            display: flex;
+            align-items: center;
+            background: #2a2a2b;
+            border-radius: 12px;
+            padding: 0 4px;
+        }
+        .counter button {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 10px 16px;
+        }
+        .counter span {
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+        }
+        .submit-btn {
+            flex: 1;
+            background: #ff9052;
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 14px;
+        }
     </style>
 </head>
 <body>
     <div id="app">
-        <h2>Тест виджета ☕️</h2>
-        <button class="btn" onclick="sendOrder()">Заказать кофе</button>
+        <!-- Шапка -->
+        <div class="header">
+            <div class="header-icon">🥤</div>
+            <div class="header-info">
+                <h2>Американо</h2>
+                <p>Двойной эспрессо и горячая вода</p>
+            </div>
+        </div>
+
+        <!-- Размеры -->
+        <div class="options-grid" style="margin-bottom: 16px;">
+            <button class="option-btn">S 250 мл</button>
+            <button class="option-btn active">M 350 мл</button>
+            <button class="option-btn">L 450 мл</button>
+        </div>
+
+        <!-- Молоко -->
+        <div class="section-title">МОЛОКО</div>
+        <div class="options-grid">
+            <button class="option-btn active">Обычное</button>
+            <button class="option-btn">Овсяное +50 ₽</button>
+            <button class="option-btn">Кокосовое +50 ₽</button>
+        </div>
+
+        <!-- Сироп -->
+        <div class="section-title">СИРОП</div>
+        <div class="options-grid">
+            <button class="option-btn active">Без сиропа</button>
+            <button class="option-btn">Карамель +30 ₽</button>
+            <button class="option-btn">Ваниль +30 ₽</button>
+            <button class="option-btn">Орех +30 ₽</button>
+        </div>
+
+        <!-- Подвал с кнопкой и счетчиком -->
+        <div class="footer">
+            <div class="counter">
+                <button>-</button>
+                <span>4</span>
+                <button>+</button>
+            </div>
+            <button class="submit-btn" onclick="sendOrder()">Отправляем...</button>
+        </div>
     </div>
+
     <script>
         function sendOrder() {
-            document.querySelector('.btn').innerText = "Отправка...";
-            TelegramWidget.request("test_order_123");
-        }
-
-        TelegramWidget.onEvent = function(eventType, eventData) {
-            if (eventType === 'widget_data_updated') {
-                let data = JSON.parse(eventData);
-                if (data.status === "success") {
-                    document.getElementById('app').innerHTML = "<h2>" + data.text + " ✅</h2><p>Спасибо!</p>";
-                }
+            document.querySelector('.submit-btn').innerText = "Загрузка...";
+            
+            // Если мы находимся внутри Телеграма, отправляем запрос
+            if (window.TelegramWidget) {
+                TelegramWidget.request("order_americano");
+            } else {
+                alert("Это мок-запрос. В браузере TelegramWidget не работает, нужен Телеграм.");
             }
-        };
+        }
     </script>
 </body>
 </html>
